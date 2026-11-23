@@ -43,13 +43,8 @@ tbody tr:last-child td{border-bottom:0}
 .cl input{width:64px;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--input);text-align:center;font-size:18px;font-weight:600;outline:none;padding:0 2px}
 .cl input:focus{border-color:var(--pri2);box-shadow:0 0 0 3px rgba(59,130,246,.25)}
 .cl input::placeholder{color:var(--line)}
-.rc{position:sticky;right:44px;z-index:2;min-width:88px;max-width:130px;padding:0 8px;text-align:right;border-left:1px solid var(--line);font-weight:700;color:var(--ok);font-size:17px;overflow:hidden;text-overflow:ellipsis}
+.rc{position:sticky;right:0;z-index:2;min-width:88px;max-width:130px;padding:0 8px;text-align:right;border-left:1px solid var(--line);font-weight:700;color:var(--ok);font-size:17px;overflow:hidden;text-overflow:ellipsis}
 .rc.long{font-size:13.5px}.rc.empty{color:var(--mute);font-weight:400}.rc.err{color:var(--bad);font-size:12px;white-space:normal;line-height:1.15}
-.pc{position:sticky;right:0;z-index:2;width:44px;min-width:44px;text-align:center}
-.ph{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card2);display:inline-grid;place-items:center;cursor:pointer;padding:0;overflow:hidden;color:var(--mute);vertical-align:middle}
-.ph.has{border-color:var(--pri2)}
-.ph img{width:100%;height:100%;object-fit:cover}
-.ph svg{width:19px;height:19px}
 
 .total{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:560px;z-index:6;background:var(--card);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px;box-shadow:0 -8px 24px rgba(0,0,0,.25)}
 .total div{flex:1;min-width:0}
@@ -88,12 +83,6 @@ tbody tr:last-child td{border-bottom:0}
 .picker i{width:26px;height:26px;border-radius:6px;border:1px solid var(--line);background:var(--card2);display:block}
 .picker i.on{background:var(--pri);border-color:var(--pri2)}
 
-#viewer{position:fixed;inset:0;z-index:30;background:#000;display:none;flex-direction:column}
-#viewer.on{display:flex}
-#viewer img{flex:1;min-height:0;object-fit:contain;width:100%}
-#viewer .vb{display:flex;gap:8px;padding:12px 12px calc(12px + env(safe-area-inset-bottom))}
-#viewer .vb button{flex:1;height:50px;border:0;border-radius:14px;background:#1e293b;color:#fff;font-weight:700;cursor:pointer}
-#viewer .vt{color:#cbd5e1;padding:calc(10px + env(safe-area-inset-top)) 14px 8px;font-size:15px}
 
 #toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#0f172a;color:#fff;border:1px solid #334155;border-radius:999px;padding:9px 10px 9px 18px;display:flex;align-items:center;gap:10px;font-size:15px;opacity:0;pointer-events:none;transition:.2s;z-index:40;white-space:nowrap}
 #toast.on{opacity:.97;pointer-events:auto}
@@ -116,10 +105,7 @@ tbody tr:last-child td{border-bottom:0}
 </div>
 <div class="total"><div><small id="totalLbl">รวมผลทุกแถว</small><b id="total">0</b></div><button id="addRow">＋ แถว</button><button id="sizeB" class="pri"></button></div>
 <div id="bd"></div><div id="sheet"></div>
-<div id="viewer"><div class="vt" id="vTitle"></div><img id="vImg" alt=""><div class="vb"><button id="vRetake">ถ่ายใหม่</button><button id="vDel">ลบรูป</button><button id="vClose">ปิด</button></div></div>
 <div id="toast"><span id="tMsg"></span><button id="tAct"></button></div>
-<input type="file" id="camIn" accept="image/*" capture="environment" hidden>
-<input type="file" id="galIn" accept="image/*" hidden>
 <script>
 const KEY = 'ezcalc_v2', OLD_KEY = 'ezcalc_v1';
 const OPS = {'+': '+', '-': '−', '*': '×', '/': '÷'};
@@ -128,10 +114,9 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const colName = i => String.fromCharCode(65 + i);
-const CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>';
 
-// ---------- data: list = {id, name, cols, rows: [{id, op, v: [..cols], photo}]} ----------
-const newRow = (cols, op) => ({id: uid(), op: op || '+', v: Array(cols).fill(''), photo: false});
+// ---------- data: list = {id, name, cols, rows: [{id, op, v: [..cols]}]} ----------
+const newRow = (cols, op) => ({id: uid(), op: op || '+', v: Array(cols).fill('')});
 const newList = (name, r = 3, c = 3) => ({id: uid(), name, cols: c, rows: Array.from({length: r}, () => newRow(c))});
 function load() {
   try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.lists && s.lists.length) return s; } catch (e) {}
@@ -161,28 +146,6 @@ const fmt = v => (Object.is(v, -0) ? 0 : v).toLocaleString('en-US', {maximumFrac
 const resText = v => v === null ? ['empty', '—'] : Number.isNaN(v) ? ['err', 'ตัวเลขผิด'] : !isFinite(v) ? ['err', 'หาร 0 ไม่ได้'] : ['', fmt(v)];
 const rowExpr = (row, cols) => row.v.slice(0, cols).filter(x => num(x) !== null).join(` ${OPS[row.op]} `);
 
-// ---------- photos (IndexedDB) ----------
-const idb = new Promise((res, rej) => { const r = indexedDB.open('ezcalc', 1); r.onupgradeneeded = () => r.result.createObjectStore('photos'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
-const tx = async (mode, fn) => { const db = await idb; return new Promise((res, rej) => { const t = db.transaction('photos', mode), q = fn(t.objectStore('photos')); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); }); };
-const pGet = k => tx('readonly', s => s.get(k)).catch(() => null);
-const pPut = (k, v) => tx('readwrite', s => s.put(v, k));
-const pDel = k => tx('readwrite', s => s.delete(k)).catch(() => {});
-const urls = new Map();
-async function photoUrl(id) {
-  if (urls.has(id)) return urls.get(id);
-  const b = await pGet(id); if (!b) return null;
-  const u = URL.createObjectURL(b); urls.set(id, u); return u;
-}
-function dropPhoto(row) { if (!row.photo) return; pDel(row.id); if (urls.has(row.id)) { URL.revokeObjectURL(urls.get(row.id)); urls.delete(row.id); } }
-async function shrink(file) {
-  const src = URL.createObjectURL(file), img = new Image();
-  img.src = src; await img.decode(); URL.revokeObjectURL(src);
-  const k = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
-  c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
-  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-  return new Promise(r => c.toBlob(r, 'image/jpeg', 0.75));
-}
-
 // ---------- render ----------
 function resCell(row, cols) {
   const [cls, txt] = resText(rowResult(row, cols));
@@ -194,20 +157,15 @@ function render() {
   $('#sizeB').textContent = `ตาราง ${ls.rows.length}×${C}`;
   let h = '<table><thead><tr><th class="rn">#</th><th class="opc">คิด</th>';
   for (let c = 0; c < C; c++) h += `<th>${colName(c)}</th>`;
-  h += '<th class="rc" style="color:var(--mute);font-weight:600;font-size:12.5px;text-align:right">ผล</th><th class="pc"></th></tr></thead><tbody>';
+  h += '<th class="rc" style="color:var(--mute);font-weight:600;font-size:12.5px;text-align:right">ผล</th></tr></thead><tbody>';
   ls.rows.forEach((row, r) => {
     const [cls, txt] = resCell(row, C);
     h += `<tr data-r="${r}"><td class="rn">${r + 1}</td><td class="opc"><button class="opb">${OPS[row.op]}</button></td>`;
     for (let c = 0; c < C; c++) h += `<td class="cl"><input data-c="${c}" value="${esc(row.v[c])}" inputmode="decimal" enterkeyhint="next" autocomplete="off" placeholder="0"></td>`;
-    h += `<td class="rc ${cls}">${esc(txt)}</td><td class="pc"><button class="ph ${row.photo ? 'has' : ''}" title="ถ่ายรูป">${CAM}</button></td></tr>`;
+    h += `<td class="rc ${cls}">${esc(txt)}</td></tr>`;
   });
   $('#tw').innerHTML = h + '</tbody></table>';
-  ls.rows.forEach(row => row.photo && showThumb(row));
   total();
-}
-async function showThumb(row) {
-  const u = await photoUrl(row.id), i = L().rows.indexOf(row), btn = $(`tr[data-r="${i}"] .ph`);
-  if (btn) btn.innerHTML = u ? `<img src="${u}" alt="">` : CAM;
 }
 function updateRow(r) {
   const td = $(`tr[data-r="${r}"] .rc`); if (!td) return;
@@ -241,7 +199,6 @@ tw.addEventListener('click', e => {
   const tr = e.target.closest('tbody tr'); if (!tr) return;
   const r = +tr.dataset.r, row = L().rows[r];
   if (e.target.closest('.opb')) return opSheet(r);
-  if (e.target.closest('.ph')) return row.photo ? openViewer(row) : pickPhoto(row);
   if (e.target.closest('.rn')) return rowSheet(r);
 });
 function addRow(silent) {
@@ -306,8 +263,7 @@ function sizeSheet(first) {
 }
 function applySize() {
   const ls = L(), lostRows = ls.rows.slice(tmpR), lostCells = ls.rows.slice(0, tmpR).some(row => row.v.slice(tmpC).some(x => x !== ''));
-  if ((lostRows.some(row => row.v.some(x => x !== '') || row.photo) || lostCells) && !confirm('ข้อมูลในแถว/คอลัมน์ที่ตัดออกจะหาย ทำต่อไหม?')) return;
-  lostRows.forEach(dropPhoto);
+  if ((lostRows.some(row => row.v.some(x => x !== '')) || lostCells) && !confirm('ข้อมูลในแถว/คอลัมน์ที่ตัดออกจะหาย ทำต่อไหม?')) return;
   ls.rows = ls.rows.slice(0, tmpR);
   while (ls.rows.length < tmpR) ls.rows.push(newRow(tmpC, ls.rows.at(-1)?.op));
   ls.rows.forEach(row => { row.v = row.v.slice(0, tmpC); while (row.v.length < tmpC) row.v.push(''); });
@@ -339,8 +295,6 @@ $('#sheet').onclick = e => {
     case 'close': return closeSheet();
     case 'applySize': return applySize();
     case 'size': return sizeSheet(false);
-    case 'cam': return $('#camIn').click();
-    case 'gal': return $('#galIn').click();
     case 'lists': return listsSheet();
     case 'share': closeSheet(); return share();
     case 'install': closeSheet(); installEv.prompt(); installEv.userChoice.finally(() => installEv = null); return;
@@ -352,60 +306,19 @@ $('#sheet').onclick = e => {
       const i = sheetRow, row = ls.rows.splice(i, 1)[0];
       if (!ls.rows.length) ls.rows.push(newRow(ls.cols, row.op));
       save(); closeSheet(); render();
-      let undone = false;
-      toast('ลบแถวแล้ว', 'เลิกทำ', () => { undone = true; ls.rows.splice(i, 0, row); save(); render(); });
-      setTimeout(() => { if (!undone) dropPhoto(row); }, 6000);
+      toast('ลบแถวแล้ว', 'เลิกทำ', () => { ls.rows.splice(i, 0, row); save(); render(); });
       return;
     }
     case 'clear':
       if (!confirm('ล้างตัวเลขทุกช่องในตารางนี้?')) return;
-      ls.rows.forEach(row => { row.v = Array(ls.cols).fill(''); dropPhoto(row); row.photo = false; });
+      ls.rows.forEach(row => { row.v = Array(ls.cols).fill(''); });
       save(); closeSheet(); render(); return;
     case 'delList':
       if (!confirm(`ลบชุด "${ls.name}" ทั้งหมด?`)) return;
-      ls.rows.forEach(dropPhoto); S.lists.splice(S.cur, 1);
+      S.lists.splice(S.cur, 1);
       if (!S.lists.length) S.lists.push(newList('ชุดที่ 1'));
       S.cur = Math.max(0, S.cur - 1); save(); closeSheet(); render(); return;
   }
-};
-
-// ---------- photo per row ----------
-let photoFor = null;
-function pickPhoto(row) {
-  photoFor = row;
-  sheet(`<h3>รูปของแถว ${L().rows.indexOf(row) + 1}</h3>
-    <button class="mi" data-a="cam">${CAM} ถ่ายรูป</button>
-    <button class="mi" data-a="gal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg> เลือกจากคลังภาพ</button>`);
-}
-async function gotFile(e) {
-  const f = e.target.files[0]; e.target.value = '';
-  const row = photoFor; if (!f || !row) return;
-  closeSheet();
-  try {
-    const blob = await shrink(f);
-    await pPut(row.id, blob);
-    if (urls.has(row.id)) { URL.revokeObjectURL(urls.get(row.id)); urls.delete(row.id); }
-    row.photo = true; save();
-    $(`tr[data-r="${L().rows.indexOf(row)}"] .ph`)?.classList.add('has'); showThumb(row);
-    toast('แนบรูปแล้ว');
-    if ($('#viewer').classList.contains('on')) openViewer(row);
-  } catch (err) { toast('บันทึกรูปไม่ได้'); }
-}
-$('#camIn').onchange = gotFile;
-$('#galIn').onchange = gotFile;
-let viewing = null;
-async function openViewer(row) {
-  viewing = row;
-  const ex = rowExpr(row, L().cols);
-  $('#vTitle').textContent = `แถว ${L().rows.indexOf(row) + 1}${ex ? ' · ' + ex + ' ' + resCell(row, L().cols)[1] : ''}`;
-  $('#vImg').src = await photoUrl(row.id) || '';
-  $('#viewer').classList.add('on');
-}
-$('#vClose').onclick = () => $('#viewer').classList.remove('on');
-$('#vRetake').onclick = () => { photoFor = viewing; $('#camIn').click(); };
-$('#vDel').onclick = () => {
-  if (!viewing || !confirm('ลบรูปนี้?')) return;
-  dropPhoto(viewing); viewing.photo = false; save(); $('#viewer').classList.remove('on'); render(); toast('ลบรูปแล้ว');
 };
 
 // ---------- share ----------
@@ -431,6 +344,7 @@ addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEv = e
 addEventListener('appinstalled', () => { installEv = null; toast('ติดตั้งแล้ว'); });
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 
+try { indexedDB.deleteDatabase('ezcalc'); } catch (e) {} // photos of earlier versions are no longer used
 const first = !!S.fresh;
 render();
 if (first) sizeSheet(true);
