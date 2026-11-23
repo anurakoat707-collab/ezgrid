@@ -1,12 +1,12 @@
 {
   "name": "EZGrid - ตารางคิดเลข",
   "short_name": "EZGrid",
-  "description": "ตารางกรอกตัวเลขบนมือถือ คิด + − × ÷ และรวมผล",
+  "description": "เลือกขนาดตารางเอง แต่ละแถวเลือก + − × ÷ ได้ผลทันที รวมผลทุกแถว แนบรูปได้",
   "lang": "th",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait",
   "background_color": "#0b1220",
   "theme_color": "#0b1220",
   "icons": [
